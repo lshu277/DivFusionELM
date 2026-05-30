@@ -13,12 +13,12 @@ y = data(:, end);
 numSamples  = size(X, 1);
 numFeatures = size(X, 2);
 
-% Parameter settings
-numHiddenNodes = 100;
+numHiddenNodes = 120;
 numFolds       = 5;
 activationFunc = 'sig';
 problemType    = 0;     % 0 = regression, 1 = classification
 runID          = 0;     % keep plotting and diagnostic output quiet
+
 
 rng(1);
 
