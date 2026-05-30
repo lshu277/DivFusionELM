@@ -1,7 +1,7 @@
 % Main script for DivFusionELM
 clear; clc; close all;
 
-%% Load dataset
+% Load dataset
 % The variable "data" should contain [features, target].
 % Samples are arranged in rows after transposition.
 load data.mat
@@ -13,7 +13,7 @@ y = data(:, end);
 numSamples  = size(X, 1);
 numFeatures = size(X, 2);
 
-%% Parameter settings
+% Parameter settings
 numHiddenNodes = 100;
 numFolds       = 5;
 activationFunc = 'sig';
@@ -22,7 +22,7 @@ runID          = 0;     % keep plotting and diagnostic output quiet
 
 rng(1);
 
-%% Build K-fold indices without toolbox dependency
+% Build K-fold indices without toolbox dependency
 order = randperm(numSamples);
 foldID = zeros(numSamples, 1);
 
@@ -30,13 +30,13 @@ for i = 1:numSamples
     foldID(order(i)) = mod(i - 1, numFolds) + 1;
 end
 
-%% Metric storage
+% Metric storage
 % Test : RMSE, r, MAE, RPD, RPIQ, MaxRelErr, MinRelErr
 % Train: RMSE, r, MAE, RPD, RPIQ, MaxRelErr, MinRelErr
 foldMetrics = zeros(numFolds, 14);
 foldModels  = cell(numFolds, 1);
 
-%% Cross validation
+% Cross validation
 for fold = 1:numFolds
     fprintf('\n========== Fold %d / %d ==========\n', fold, numFolds);
 
@@ -48,7 +48,7 @@ for fold = 1:numFolds
     XTest  = X(testMask,  :);
     yTest  = y(testMask,  :);
 
-    %% Normalization based only on training data
+    % Normalization based only on training data
     [XTrainNorm, inputPS] = mapminmax(XTrain', -1, 1);
     XTrainNorm = XTrainNorm';
 
@@ -57,18 +57,18 @@ for fold = 1:numFolds
     [yTrainNorm, outputPS] = mapminmax(yTrain', -1, 1);
     yTrainNorm = yTrainNorm';
 
-    %% Train DivFusionELM
+    % Train DivFusionELM
     evalc('[IW, B, LW, TF, TYPE] = elmtrain_Div(XTrainNorm, yTrainNorm, numHiddenNodes, activationFunc, problemType, runID);');
 
-    %% Prediction in normalized space
+    % Prediction in normalized space
     yTestNormPred  = elmpredict_Div(XTestNorm,  IW, B, LW, TF, TYPE);
     yTrainNormPred = elmpredict_Div(XTrainNorm, IW, B, LW, TF, TYPE);
 
-    %% Reverse normalization
+    % Reverse normalization
     yTestPred  = mapminmax('reverse', yTestNormPred',  outputPS)';
     yTrainPred = mapminmax('reverse', yTrainNormPred', outputPS)';
 
-    %% Evaluation
+    % Evaluation
     testScores  = evaluate_metrics(yTest,  yTestPred);
     trainScores = evaluate_metrics(yTrain, yTrainPred);
 
@@ -77,7 +77,7 @@ for fold = 1:numFolds
         trainScores.RMSE, trainScores.r, trainScores.MAE, trainScores.RPD, trainScores.RPIQ, trainScores.MaxRelErr, trainScores.MinRelErr
     ];
 
-    %% Save current fold model
+    % Save current fold model
     currentModel = struct();
     currentModel.IW = IW;
     currentModel.B = B;
@@ -94,7 +94,7 @@ for fold = 1:numFolds
     fprintf('Train RMSE = %.4f, r = %.4f\n', trainScores.RMSE, trainScores.r);
 end
 
-%% Mean results
+% Mean results
 meanMetrics = mean(foldMetrics, 1);
 
 testRMSE = meanMetrics(1);
@@ -115,5 +115,5 @@ fprintf('Test : RMSE = %.4f, r = %.4f, MAE = %.4f, RPD = %.4f, RPIQ = %.4f\n', .
 fprintf('Train: RMSE = %.4f, r = %.4f, MAE = %.4f, RPD = %.4f, RPIQ = %.4f\n', ...
     trainRMSE, trainR, trainMAE, trainRPD, trainRPIQ);
 
-%% Optional save
+% Optional save
 % save('DivFusionELM_cv_summary.mat', 'foldMetrics', 'meanMetrics', 'foldModels');
