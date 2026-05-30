@@ -1,4 +1,4 @@
-%% Main script for DivFusionELM
+% Main script for DivFusionELM
 clear; clc; close all;
 
 %% Load dataset
