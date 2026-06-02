@@ -2,8 +2,6 @@
 clear; clc; close all;
 
 % Load dataset
-% The variable "data" should contain [features, target].
-% Samples are arranged in rows after transposition.
 load data.mat
 data = data';
 
